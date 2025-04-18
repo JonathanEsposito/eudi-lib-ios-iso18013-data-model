@@ -42,7 +42,7 @@ import Crypto
 public struct DeviceEngagement: Sendable {
 	static let versionImpl: String = "1.0"
 	var version: String = Self.versionImpl
-	var security: Security!
+    public var security: Security!
 	public var originInfos: [OriginInfoWebsite]? = nil
 	public var deviceRetrievalMethods: [DeviceRetrievalMethod]? = nil
 	public var serverRetrievalOptions: ServerRetrievalOptions? = nil

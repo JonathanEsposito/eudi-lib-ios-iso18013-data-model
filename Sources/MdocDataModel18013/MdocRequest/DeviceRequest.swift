@@ -79,5 +79,62 @@ extension DeviceRequest {
 		let isoReqElements = RequestDataElements(dataElements: isoDataElements )
 		let itemsReq = ItemsRequest(docType: IsoMdlModel.isoDocType, requestNameSpaces: RequestNameSpaces(nameSpaces: [IsoMdlModel.isoNamespace: isoReqElements]), requestInfo: nil)
 		self.init(version: "1.0", docRequests: [DocRequest(itemsRequest: itemsReq, itemsRequestRawData: nil, readerAuth: nil, readerAuthRawCBOR: nil)])
+        
+        
+        let itemsElements = items.map { ElementToRequest(nameSpace: IsoMdlModel.isoNamespace,
+                                                         elementId: $0.rawValue,
+                                                         intentToRetain: intentToRetain) }
+        let agesOverElements = agesOver.map { ElementToRequest(nameSpace: IsoMdlModel.isoNamespace,
+                                                               elementId: "age_over_\($0)",
+                                                               intentToRetain: intentToRetain) }
+        
+        self.init(version: "1.0", documents: [DocumentRequest(docType: IsoMdlModel.isoDocType,
+                                                              elements: itemsElements + agesOverElements)])
 	}
+    
+    public init(version: String, documents: [DocumentRequest]) {
+        self.version = version
+        self.docRequests = documents.map { $0.docRequest }
+    }
+    
+}
+
+public struct DocumentRequest {
+    let docType: DocType
+    let elements: [ElementToRequest]
+    let requestInfo: [String: Any]
+    
+    var docRequest: DocRequest {
+        DocRequest(itemsRequest: itemsRequest, itemsRequestRawData: nil, readerAuth: nil, readerAuthRawCBOR: nil)
+    }
+    
+    private var itemsRequest: ItemsRequest {
+        let elementsPerNameSpace = Dictionary(grouping: elements, by: \.nameSpace)
+        
+        let dataElementsPerNameSpaces = elementsPerNameSpace.mapValues {
+            RequestDataElements(dataElements: $0.reduce(into: [DataElementIdentifier: IntentToRetain]()) { $0[$1.elementId] = $1.intentToRetain })
+        }
+        
+        return ItemsRequest(docType: docType,
+                            requestNameSpaces: RequestNameSpaces(nameSpaces: dataElementsPerNameSpaces),
+                            requestInfo: nil)
+    }
+    
+    public init(docType: String, elements: [ElementToRequest], requestInfo: [String: Any] = [:]) {
+        self.docType = docType
+        self.elements = elements
+        self.requestInfo = requestInfo
+    }
+}
+
+public struct ElementToRequest {
+    let nameSpace: NameSpace
+    let elementId: DataElementIdentifier
+    let intentToRetain: IntentToRetain
+    
+    public init(nameSpace: NameSpace, elementId: DataElementIdentifier, intentToRetain: IntentToRetain) {
+        self.nameSpace = nameSpace
+        self.elementId = elementId
+        self.intentToRetain = intentToRetain
+    }
 }

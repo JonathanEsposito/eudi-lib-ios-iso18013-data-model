@@ -27,7 +27,7 @@ extension Cose {
 		/// Only one signature is applied on the message payload
 		case sign1 = "Signature1"
 		case mac0 = "MAC0"
-		/// Idenntifies Cose Message Type from input data
+		/// Identifies Cose Message Type from input data
 		static func from(data: Data) -> (CoseType, [CBOR])? {
 			guard let cose = try? CBORDecoder(input: data.bytes).decodeItem()?.asCose() else {
 				return nil
