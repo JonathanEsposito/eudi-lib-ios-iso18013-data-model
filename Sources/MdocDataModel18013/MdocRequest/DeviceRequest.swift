@@ -74,16 +74,10 @@ extension DeviceRequest {
     ///   - agesOver: Ages to request if equal or above
     ///   - intentToRetain: Specify intent to retain (after retrieval)
 	public init(mdl items: [IsoMdlModel.CodingKeys], agesOver: [Int], intentToRetain: IntentToRetain = true) {
-		var isoDataElements: [DataElementIdentifier: IntentToRetain] = Dictionary(grouping: items, by: {$0.rawValue}).mapValues {_ in intentToRetain}
-		for ao in agesOver { isoDataElements["age_over_\(ao)"] = intentToRetain }
-		let isoReqElements = RequestDataElements(dataElements: isoDataElements )
-		let itemsReq = ItemsRequest(docType: IsoMdlModel.isoDocType, requestNameSpaces: RequestNameSpaces(nameSpaces: [IsoMdlModel.isoNamespace: isoReqElements]), requestInfo: nil)
-		self.init(version: "1.0", docRequests: [DocRequest(itemsRequest: itemsReq, itemsRequestRawData: nil, readerAuth: nil, readerAuthRawCBOR: nil)])
-        
-        
         let itemsElements = items.map { ElementToRequest(nameSpace: IsoMdlModel.isoNamespace,
                                                          elementId: $0.rawValue,
                                                          intentToRetain: intentToRetain) }
+        
         let agesOverElements = agesOver.map { ElementToRequest(nameSpace: IsoMdlModel.isoNamespace,
                                                                elementId: "age_over_\($0)",
                                                                intentToRetain: intentToRetain) }
