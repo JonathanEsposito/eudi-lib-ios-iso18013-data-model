@@ -21,15 +21,13 @@ import SwiftCBOR
 
 public struct IssuerAuth: Sendable {
 	public let mso: MobileSecurityObject
-	public let msoRawData: [UInt8]
 	/// one or more certificates
 	public let verifyAlgorithm: Cose.VerifyAlgorithm
 	public let signature: Data
 	public let iaca: [[UInt8]]
 	
-	public init(mso: MobileSecurityObject, msoRawData: [UInt8], verifyAlgorithm: Cose.VerifyAlgorithm, signature: Data, iaca: [[UInt8]]) {
+	public init(mso: MobileSecurityObject, verifyAlgorithm: Cose.VerifyAlgorithm, signature: Data, iaca: [[UInt8]]) {
 		self.mso = mso
-		self.msoRawData = msoRawData
 		self.verifyAlgorithm = verifyAlgorithm
 		self.signature = signature
 		self.iaca = iaca
@@ -44,7 +42,7 @@ extension IssuerAuth: CBORDecodable {
 	public init?(cbor: CBOR) {
 		guard let cose = Cose(type: .sign1, cbor: cbor) else { logger.error("IssuerAuth cbor error"); return nil}
 		guard case let .byteString(bs) = cose.payload, let m = MobileSecurityObject(data: bs), let va = cose.verifyAlgorithm else { return nil}
-		mso = m; msoRawData = bs; verifyAlgorithm = va; signature = cose.signature
+		mso = m; verifyAlgorithm = va; signature = cose.signature
 		guard let ch = cose.unprotectedHeader?.rawHeader, case let .map(mch) = ch  else { return nil }
 		if case let .byteString(bs) = mch[.unsignedInt(33)] { iaca = [bs] }
 		else if case let .array(a) = mch[.unsignedInt(33)] { iaca = a.compactMap { if case let .byteString(bs) = $0 { return bs } else { return nil } } }
@@ -55,7 +53,8 @@ extension IssuerAuth: CBORDecodable {
 extension IssuerAuth: CBOREncodable {
 	public func toCBOR(options: SwiftCBOR.CBOROptions) -> SwiftCBOR.CBOR {
 		let unprotectedHeaderCbor = CBOR.map([.unsignedInt(33): iaca.count == 1 ? CBOR.byteString(iaca[0]) : CBOR.array(iaca.map { CBOR.byteString($0) })])
-		let cose = Cose(type: .sign1, algorithm: verifyAlgorithm.rawValue, payloadData: Data(msoRawData), unprotectedHeaderCbor:  unprotectedHeaderCbor, signature: signature)
+        let msoBytes = mso.toCBOR(options: CBOROptions()).taggedEncoded.encode()
+		let cose = Cose(type: .sign1, algorithm: verifyAlgorithm.rawValue, payloadData: Data(msoBytes), unprotectedHeaderCbor:  unprotectedHeaderCbor, signature: signature)
 		return cose.toCBOR(options: options)
 	}
 }
