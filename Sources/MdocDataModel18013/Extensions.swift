@@ -112,13 +112,20 @@ extension Array where Element == UInt8 {
 		}
 		return str
 	}
+    
 	public var taggedEncoded: CBOR {
 		CBOR.tagged(.encodedCBORDataItem, .byteString(self))
 	}
 }
 
+extension Array where Element == UInt8 {
+    public var data: Data {
+        return Data(self)
+    }
+}
+
 extension CBOREncodable {
-	public func encode(options: SwiftCBOR.CBOROptions) -> [UInt8] {
+    public func encode(options: SwiftCBOR.CBOROptions = CBOROptions()) -> [UInt8] {
 		toCBOR(options: CBOROptions()).encode()
 	}
 	public var taggedEncoded: CBOR {

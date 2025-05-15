@@ -72,8 +72,10 @@ extension DeviceResponse: CBOREncodable {
 	public func toCBOR(options: CBOROptions) -> CBOR {
 		var cbor = OrderedDictionary<CBOR, CBOR>()
 		cbor[.utf8String(Keys.version.rawValue)] = .utf8String(version)
-		if let ds = documents { cbor[.utf8String(Keys.documents.rawValue)] = ds.toCBOR(options: options) }
-		if let de = documentErrors { cbor[.utf8String(Keys.documentErrors.rawValue)] = .array(de.map {$0.toCBOR(options: options)}) }
+        if let ds = documents, !ds.isEmpty { cbor[.utf8String(Keys.documents.rawValue)] = ds.toCBOR(options: options) }
+        if let de = documentErrors, !de.isEmpty {
+            cbor[.utf8String(Keys.documentErrors.rawValue)] = .array(de.map {$0.toCBOR(options: options)})
+        }
 		cbor[.utf8String(Keys.status.rawValue)] = .unsignedInt(status)
 		return .map(cbor)
 	}
