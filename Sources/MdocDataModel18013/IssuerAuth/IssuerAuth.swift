@@ -19,7 +19,7 @@ limitations under the License.
 import Foundation
 import SwiftCBOR
 
-public struct IssuerAuth: Sendable {
+public struct IssuerAuth: Sendable, Equatable {
 	public let mso: MobileSecurityObject
 	/// one or more certificates
 	public let verifyAlgorithm: Cose.VerifyAlgorithm

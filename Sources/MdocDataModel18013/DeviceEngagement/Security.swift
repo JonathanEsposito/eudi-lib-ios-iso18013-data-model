@@ -23,14 +23,8 @@ import SwiftCBOR
 /// Security = [int, EDeviceKeyBytes ]
 public struct Security: Sendable {
 	static let cipherSuiteIdentifier: UInt64 = 1
-	// private key for holder only
-	var d: [UInt8]?
-	/// security struct. of the holder transfered (only the public key of the mDL is encoded)
+	/// security struct. of the holder transferred (only the public key of the mDL is encoded)
 	public let deviceKey: CoseKey
-	
-#if DEBUG
-	mutating func setD(d: [UInt8]) { self.d = d }
-#endif
 }
 
 extension Security: CBOREncodable {

@@ -19,7 +19,7 @@ import SwiftCBOR
 import OrderedCollections
 
 /// Data item signed by issuer
-public struct IssuerSignedItem: Sendable {
+public struct IssuerSignedItem: Sendable, Equatable {
     /// Digest ID for issuer data authentication
 	public let digestID: UInt64
     /// Random value for issuer data authentication

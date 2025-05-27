@@ -21,7 +21,7 @@ import SwiftCBOR
 import OrderedCollections
 
 /// Digests of all data elements per namespace
-public struct ValueDigests: Sendable {
+public struct ValueDigests: Sendable, Equatable {
 	public let valueDigests: [NameSpace: DigestIDs]
 	public subscript(ns: NameSpace) -> DigestIDs? {valueDigests[ns] }
 	
@@ -52,7 +52,7 @@ extension ValueDigests: CBOREncodable {
 }
 
 /// Table 21 — Digest algorithm identifiers
-public enum DigestAlgorithmKind: String, Sendable {
+public enum DigestAlgorithmKind: String, Equatable, Sendable {
 	case SHA256 = "SHA-256"
 	case SHA384 = "SHA-384"
 	case SHA512 = "SHA-512"

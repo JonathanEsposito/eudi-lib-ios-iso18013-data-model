@@ -20,9 +20,9 @@ import Foundation
 import SwiftCBOR
 import OrderedCollections
 
-public struct DigestIDs: Sendable {
+public struct DigestIDs: Sendable, Equatable {
 	public let digestIDs: [DigestID: [UInt8]]
-	public subscript(digestID: DigestID) -> [UInt8]? {digestIDs[digestID] }
+	public subscript(digestID: DigestID) -> [UInt8]? { digestIDs[digestID] }
 	
 	public init(digestIDs: [DigestID : [UInt8]]) {
 		self.digestIDs = digestIDs

@@ -20,7 +20,7 @@ import SwiftCBOR
 import OrderedCollections
 
 /// The `ValidityInfo` structure contains information related to the validity of the MSO and its signature
-public struct ValidityInfo: Sendable {
+public struct ValidityInfo: Sendable, Equatable {
 	// string tdate from CBOR
 	public let signed: String
 	public let validFrom: String

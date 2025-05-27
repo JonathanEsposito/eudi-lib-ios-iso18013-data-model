@@ -18,15 +18,16 @@ limitations under the License.
 
 import Foundation
 import SwiftCBOR
-//
 
 extension Cose {
+    
 	/// COSE Message Identification
 	public enum CoseType : String, Sendable {
 		/// COSE Single Signer Data Object
 		/// Only one signature is applied on the message payload
 		case sign1 = "Signature1"
 		case mac0 = "MAC0"
+        
 		/// Identifies Cose Message Type from input data
 		static func from(data: Data) -> (CoseType, [CBOR])? {
 			guard let cose = try? CBORDecoder(input: data.bytes).decodeItem()?.asCose() else {
@@ -47,7 +48,7 @@ extension Cose {
 	/// ECDSA Algorithm Values defined in
 	///
 	/// Table1 in rfc/rfc8152#section-16.2
-	public enum VerifyAlgorithm: UInt64, Sendable {
+    public enum VerifyAlgorithm: UInt64, Sendable, Equatable {
 		case es256 = 6 //-7 ECDSA w/ SHA-256
 		case es384 = 34 //-35 ECDSA w/ SHA-384
 		case es512 = 35//-36 ECDSA w/ SHA-512
@@ -69,6 +70,7 @@ extension Cose {
 		case hmac384 = 6 //HMAC w/ SHA-384
 		case hmac512 = 7 //HMAC w/ SHA-512
 	}
+    
 }
 
 extension Cose {

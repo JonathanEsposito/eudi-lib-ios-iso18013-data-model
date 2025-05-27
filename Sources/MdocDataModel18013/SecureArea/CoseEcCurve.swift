@@ -19,7 +19,7 @@ import Foundation
 /// Elliptic curve identifiers  from the [IANA COSE registry](https://www.iana.org/assignments/cose/cose.xhtml).
 
 /// This list is a superset of the iOS natively supported curves
-public enum CoseEcCurve: UInt64, Sendable {
+public enum CoseEcCurve: UInt64, Sendable, Equatable {
     /// The curve identifier for P-256
     case P256 = 1
     /// The curve identifier for P-384
@@ -35,22 +35,22 @@ public enum CoseEcCurve: UInt64, Sendable {
     /// The curve identifier for brainpoolP512r1
     case BRAINPOOLP512R1 = 259
     /// The curve identifier for Ed25519 (EdDSA only)
-    case ED25519 = 6
-    /// The curve identifier for X25519 (ECDH only)
-    case X25519 = 4
-    /// The curve identifier for Ed448 (EdDSA only)
-    case ED448 = 7
-    /// The curve identifier for X448 (ECDH only)
-    case X448 = 5
+//    case ED25519 = 6
+//    /// The curve identifier for X25519 (ECDH only)
+//    case X25519 = 4
+//    /// The curve identifier for Ed448 (EdDSA only)
+//    case ED448 = 7
+//    /// The curve identifier for X448 (ECDH only)
+//    case X448 = 5
 
     static let coseToJwk: [CoseEcCurve: String] = [
         .P256: "P-256",
         .P384: "P-384",
         .P521: "P-521",
-        .ED25519: "Ed25519",
-        .ED448: "Ed448",
-        .X25519: "X25519",
-        .X448: "X448",
+//        .ED25519: "Ed25519",
+//        .ED448: "Ed448",
+//        .X25519: "X25519",
+//        .X448: "X448",
         .BRAINPOOLP256R1: "brainpoolP256r1",
         .BRAINPOOLP320R1: "brainpoolP320r1",
         .BRAINPOOLP384R1: "brainpoolP384r1",
@@ -61,10 +61,10 @@ public enum CoseEcCurve: UInt64, Sendable {
         "P-256": .P256,
         "P-384": .P384,
         "P-521": .P521,
-        "Ed25519": .ED25519,
-        "Ed448": .ED448,
-        "X25519": .X25519,
-        "X448": .X448,
+//        "Ed25519": .ED25519,
+//        "Ed448": .ED448,
+//        "X25519": .X25519,
+//        "X448": .X448,
         "brainpoolP256r1": .BRAINPOOLP256R1,
         "brainpoolP320r1": .BRAINPOOLP320R1,
         "brainpoolP384r1": .BRAINPOOLP384R1,
@@ -88,12 +88,12 @@ public enum CoseEcCurve: UInt64, Sendable {
     /// The curve size in bits
     public var bitSize: Int {
         switch self {
-        case .P256, .BRAINPOOLP256R1, .X25519, .ED25519: 256
+        case .P256, .BRAINPOOLP256R1: 256//, .X25519, .ED25519: 256
         case .P384, .BRAINPOOLP384R1: 384
         case .P521: 521
         case .BRAINPOOLP320R1: 320
         case .BRAINPOOLP512R1: 512
-        case .X448, .ED448: 448
+//        case .X448, .ED448: 448
         }
     }
 
@@ -107,10 +107,10 @@ public enum CoseEcCurve: UInt64, Sendable {
         case .BRAINPOOLP320R1: "brainpoolP320r1"
         case .BRAINPOOLP384R1: "brainpoolP384r1"
         case .BRAINPOOLP512R1: "brainpoolP512r1"
-        case .X25519: "x25519"
-        case .ED25519: "ed25519"
-        case .X448: "x448"
-        case .ED448: "ed448"
+//        case .X25519: "x25519"
+//        case .ED25519: "ed25519"
+//        case .X448: "x448"
+//        case .ED448: "ed448"
         }
     }
 
@@ -126,10 +126,28 @@ public enum CoseEcCurve: UInt64, Sendable {
         case .P256, .BRAINPOOLP256R1, .BRAINPOOLP320R1: .ES256
         case .P384, .BRAINPOOLP384R1: .ES384
         case .P521, .BRAINPOOLP512R1: .ES512
-        case .ED25519, .ED448: .EDDSA
-        case .X25519, .X448: .UNSET
+//        case .ED25519, .ED448: .EDDSA
+//        case .X25519, .X448: .UNSET
         }
     }
+    
+    
+    public var defaultMacAlgorithm: Cose.MacAlgorithm {
+        switch self {
+        case .P256, .BRAINPOOLP256R1, .BRAINPOOLP320R1: .hmac256
+        case .P384, .BRAINPOOLP384R1: .hmac384
+        case .P521, .BRAINPOOLP512R1: .hmac512
+        }
+    }
+    
+    public var defaultVerifyAlgorithm: Cose.VerifyAlgorithm {
+        switch self {
+        case .P256, .BRAINPOOLP256R1, .BRAINPOOLP320R1: .es256
+        case .P384, .BRAINPOOLP384R1: .es384
+        case .P521, .BRAINPOOLP512R1: .es512
+        }
+    }
+    
 }
 
 /// signing algorithm
@@ -137,6 +155,25 @@ public enum SigningAlgorithm: String, Sendable {
     case ES256
     case ES384
     case ES512
-    case EDDSA
-    case UNSET
+//    case EDDSA
+//    case UNSET
+}
+
+enum CoseEcCurveError: Error {
+    case unsupportedCurve
+}
+
+extension CoseEcCurve {
+    
+    var newPrivateKey: WalletEncryptionKey {
+        get throws {
+            switch self {
+            case .P256: try P256SEEncryptionKey()
+            case .P384: P384EncryptionKey()
+            case .P521: P521EncryptionKey()
+            default: throw CoseEcCurveError.unsupportedCurve
+            }
+        }
+    }
+    
 }

@@ -21,7 +21,7 @@ import SwiftCBOR
 import OrderedCollections
 
 /// Mobile security object (MSO)
-public struct MobileSecurityObject: Sendable {
+public struct MobileSecurityObject: Sendable, Equatable {
 	public let version: String
 	public static let defaultVersion = "1.0"
 	/// Message digest algorithm used

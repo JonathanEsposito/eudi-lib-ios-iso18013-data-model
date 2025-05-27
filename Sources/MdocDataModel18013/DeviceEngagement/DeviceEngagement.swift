@@ -39,39 +39,36 @@ import Crypto
 /// ```swift
 /// let de = DeviceEngagement(data: bytes)
 /// ```
-public struct DeviceEngagement: Sendable {
+public struct DeviceEngagement {
 	static let versionImpl: String = "1.0"
 	var version: String = Self.versionImpl
-    public var security: Security!
+    public var security: Security
 	public var originInfos: [OriginInfoWebsite]? = nil
 	public var deviceRetrievalMethods: [DeviceRetrievalMethod]? = nil
 	public var serverRetrievalOptions: ServerRetrievalOptions? = nil
 	var rfus: [String]?
 	// private key data for holder only
-    public var privateKey: CoseKeyPrivate?
+    public var privateKey: WalletEncryptionKey?
 	public var qrCoded: [UInt8]?
-
-	
+    
 	/// Generate device engagement
 	/// - Parameters
 	///    - isBleServer: true for BLE mdoc peripheral server mode, false for BLE mdoc central client mode
 	///    - crv: The EC curve type used in the mdoc ephemeral private key
-    public init?(isBleServer: Bool?, rfus: [String]? = nil) {
+    public init(isBleServer: Bool?, crv: CoseEcCurve, rfus: [String]? = nil) throws {
 		self.rfus = rfus
         if let isBleServer { deviceRetrievalMethods = [.ble(isBleServer: isBleServer, uuid: UUID())] }
+        
+        let privateKey = try crv.newPrivateKey
+        self.privateKey = privateKey
+        security = Security(deviceKey: privateKey.publicCoseKey)
 	}
+    
 	/// initialize from cbor data
 	public init?(data: [UInt8]) {
 		guard let obj = try? CBOR.decode(data) else { return nil }
 		self.init(cbor: obj)
 	}
-    
-    public mutating func makePrivateKey(crv: CoseEcCurve, secureArea: any SecureArea) async throws {
-        var pk = CoseKeyPrivate(secureArea: secureArea)
-        try await pk.makeKey(curve: crv)
-        privateKey = pk
-        security = Security(deviceKey: pk.key)
-    }
 	
 	public var isBleServer: Bool? {
 		guard let deviceRetrievalMethods else { return nil}
@@ -95,7 +92,7 @@ extension DeviceEngagement: CBOREncodable {
 		var res = CBOR.map([0: .utf8String(version), 1: security.toCBOR(options: options)])
 		if let drms = deviceRetrievalMethods { res[2] = .array(drms.map { $0.toCBOR(options: options)}) }
 		if let sro = serverRetrievalOptions { res[3] = sro.toCBOR(options: options) }
-		if let oi = originInfos { 	res[5] = .array(oi.map {$0.toCBOR(options: CBOROptions()) }) }
+		if let oi = originInfos { res[5] = .array(oi.map {$0.toCBOR(options: CBOROptions()) }) }
 		if let rfus = self.rfus { for (i,r) in rfus.enumerated() { res[.negativeInt(UInt64(i))] = .utf8String(r) } }
 		logger.debug("DE: \(res.encode().toHexString())")
 		return res
@@ -113,17 +110,3 @@ extension DeviceEngagement: CBORDecodable {
 		version = v; security = s
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

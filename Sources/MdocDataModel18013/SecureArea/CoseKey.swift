@@ -33,42 +33,15 @@ public struct CoseKey: Equatable, Sendable {
     public let y: [UInt8]
 }
 
-/// COSE_Key + private key
-public struct CoseKeyPrivate: Sendable {
-
-	public var key: CoseKey!
-    public var privateKeyId: String!
-    public var secureArea: (any SecureArea)!
-
-    public init(privateKeyId: String, secureArea: any SecureArea) {
-        logger.info("Loading cose key private with id: \(privateKeyId)")
-		self.privateKeyId = privateKeyId
-		self.secureArea = secureArea
-	}
-    
-    public init(secureArea: any SecureArea) {
-        self.secureArea = secureArea
-    }
-    
-}
-
-extension CoseKeyPrivate {
-	// make new key
-    public mutating func makeKey(curve: CoseEcCurve) async throws {
-        let ephemeralKeyId = UUID().uuidString
-        privateKeyId = ephemeralKeyId
-        self.key = try await secureArea.createKey(id: ephemeralKeyId, keyOptions: KeyOptions(curve: curve))
-	}
-}
-
 extension CoseKey: CBOREncodable {
-	public func toCBOR(options: CBOROptions) -> CBOR {
-		let cbor: CBOR = [
-			-1: .unsignedInt(crv.rawValue), 1: .unsignedInt(kty),
-			 -2: .byteString(x), -3: .byteString(y),
-		]
-		return cbor
-	}
+    public func toCBOR(options: CBOROptions) -> CBOR {
+        let cbor: CBOR = [-1: .unsignedInt(crv.rawValue),
+                           1: .unsignedInt(kty),
+                           -2: .byteString(x),
+                           -3: .byteString(y)
+        ]
+        return cbor
+    }
 }
 
 extension CoseKey: CBORDecodable {
@@ -85,6 +58,7 @@ extension CoseKey: CBORDecodable {
 }
 
 extension CoseKey {
+    
 	public init(crv: CoseEcCurve, x963Representation: Data) {
 		let keyData = x963Representation.dropFirst().bytes
 		let count = keyData.count/2
@@ -96,6 +70,7 @@ extension CoseKey {
 		self.x = x
 		self.y = y
 	}
+    
 	/// An ANSI x9.63 representation of the public key.
 	public func getx963Representation() -> Data {
 		let keyData = NSMutableData(bytes: [0x04], length: [0x04].count)
@@ -104,25 +79,4 @@ extension CoseKey {
 		return keyData as Data
 	}
     
-    public func toSecKey() throws -> SecKey {
-        var error: Unmanaged<CFError>?
-        guard let publicKey = SecKeyCreateWithData(getx963Representation() as NSData, [kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyClass: kSecAttrKeyClassPublic] as NSDictionary, &error) else {
-            throw error!.takeRetainedValue() as Error
-        }
-        return publicKey
-    }
 }
-
-
-/// A COSE_Key exchange pair
-public struct CoseKeyExchange: Sendable {
-	public let publicKey: CoseKey
-	public var privateKey: CoseKeyPrivate
-
-	public init(publicKey: CoseKey, privateKey: CoseKeyPrivate) {
-		self.publicKey = publicKey
-		self.privateKey = privateKey
-	}
-}
-
-
