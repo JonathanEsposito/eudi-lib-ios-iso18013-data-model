@@ -70,13 +70,13 @@ public struct DeviceEngagement {
 		self.init(cbor: obj)
 	}
 	
-	public var isBleServer: Bool? {
-		guard let deviceRetrievalMethods else { return nil}
-		for case let .ble(isBleServer, _) in deviceRetrievalMethods {
-			return isBleServer
-		}
-		return nil
-	}
+//	public var isBleServer: Bool? {
+//		guard let deviceRetrievalMethods else { return nil}
+//		for case let .ble(isBleServer, _) in deviceRetrievalMethods {
+//			return isBleServer
+//		}
+//		return nil
+//	}
 	
 	public var ble_uuid: String? {
 		guard let deviceRetrievalMethods else { return nil}

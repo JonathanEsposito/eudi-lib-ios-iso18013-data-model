@@ -22,7 +22,7 @@ struct ReaderAuth: Sendable {
 	/// encoded data
     let coseSign1: Cose
 	/// one or more certificates
-	let x5chain: [[UInt8]] 
+	let x5chain: [[UInt8]]
 }
 
 extension ReaderAuth: CBORDecodable {

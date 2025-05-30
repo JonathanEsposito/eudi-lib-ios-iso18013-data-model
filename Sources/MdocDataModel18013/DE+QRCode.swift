@@ -63,8 +63,8 @@ extension DeviceEngagement {
 	
     /// Create QR string payload
     public mutating func getQrCodePayload() -> String {
-	qrCoded = encode(options: CBOROptions())
-	return qrCode
+        qrCoded = encode(options: CBOROptions())
+        return qrCode
     }
 #endif
 }

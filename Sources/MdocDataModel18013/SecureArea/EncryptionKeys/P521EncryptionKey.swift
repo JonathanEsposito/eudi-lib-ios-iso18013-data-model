@@ -4,34 +4,34 @@
 //
 //  Created by Jonathan Esposito on 21/05/2025.
 //  Copyright © 2025 AppFoundry. All rights reserved.
-//
+//public
 
 import Foundation
 import CryptoKit
 
-struct P521EncryptionKey: WalletEncryptionKey {
+public struct P521EncryptionKey: WalletEncryptionKey {
     
-    let curve: CoseEcCurve = .P521
-    let privateKey: P521.KeyAgreement.PrivateKey
-    var privateKeyDataRepresentation: Data { privateKey.rawRepresentation }
-    var publicKey: P521.KeyAgreement.PublicKey { privateKey.publicKey }
-    var publicKeyDer: Data { publicKey.derRepresentation }
-    var publicKeyX963: Data { publicKey.x963Representation }
-    var publicKeyString: String { publicKey.derRepresentation.base64EncodedString() }
+    public let curve: CoseEcCurve = .P521
+    public let privateKey: P521.KeyAgreement.PrivateKey
+    public var privateKeyDataRepresentation: Data { privateKey.rawRepresentation }
+    public var publicKey: P521.KeyAgreement.PublicKey { privateKey.publicKey }
+    public var publicKeyDer: Data { publicKey.derRepresentation }
+    public var publicKeyX963: Data { publicKey.x963Representation }
+    public var publicKeyString: String { publicKey.derRepresentation.base64EncodedString() }
     
-    init() {
+    public init() {
         privateKey = P521.KeyAgreement.PrivateKey()
     }
     
-    init(dataRepresentation: Data) throws {
+    public init(dataRepresentation: Data) throws {
         privateKey = try P521.KeyAgreement.PrivateKey(rawRepresentation: dataRepresentation)
     }
     
-    init(x963Representation: Data) throws {
+    public init(x963Representation: Data) throws {
         privateKey = try P521.KeyAgreement.PrivateKey(x963Representation: x963Representation)
     }
     
-    func sharedSecretFromKeyAgreement(withX963 x963Data: Data) throws -> SharedSecret {
+    public func sharedSecretFromKeyAgreement(withX963 x963Data: Data) throws -> SharedSecret {
         let remotePublicKey = try P521.KeyAgreement.PublicKey(x963Representation: x963Data)
         return try privateKey.sharedSecretFromKeyAgreement(with: remotePublicKey)
     }
@@ -40,7 +40,7 @@ struct P521EncryptionKey: WalletEncryptionKey {
 
 extension P521EncryptionKey {
     
-    func encrypt(_ dataToBeEncrypted: Data, remotePublicKeyDer: Data) throws -> Data? {
+    public func encrypt(_ dataToBeEncrypted: Data, remotePublicKeyDer: Data) throws -> Data? {
         let counterpartPublicKey = try P521.KeyAgreement.PublicKey(derRepresentation: remotePublicKeyDer)
         
         let sharedSecret = try privateKey.sharedSecretFromKeyAgreement(with: counterpartPublicKey)
@@ -53,7 +53,7 @@ extension P521EncryptionKey {
         return sealedBox.combined
     }
     
-    func decrypt(_ encryptedData: Data, remotePublicKeyDer: Data) throws -> Data {
+    public func decrypt(_ encryptedData: Data, remotePublicKeyDer: Data) throws -> Data {
         let counterpartPublicKey = try P521.KeyAgreement.PublicKey(derRepresentation: remotePublicKeyDer)
         
         let sharedSecret = try privateKey.sharedSecretFromKeyAgreement(with: counterpartPublicKey)
@@ -67,7 +67,7 @@ extension P521EncryptionKey {
         return decryptedData
     }
     
-    func hkdfDerivedSymmetricKey(salt: [UInt8], publicKey: Data, sharedInfo: Data) throws -> SymmetricKey {
+    public func hkdfDerivedSymmetricKey(salt: [UInt8], publicKey: Data, sharedInfo: Data) throws -> SymmetricKey {
         let publicKeyShare = try P521.KeyAgreement.PublicKey(x963Representation: publicKey)
         let sharedSecret = try privateKey.sharedSecretFromKeyAgreement(with: publicKeyShare)
         return sharedSecret.hkdfDerivedSymmetricKey(using: SHA512.self, salt: salt, sharedInfo: sharedInfo, outputByteCount: 64)
